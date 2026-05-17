@@ -1,0 +1,35 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node / 将来のサンプルコード用
+node_modules/
+dist/
+build/
+.cache/
+.parcel-cache/
+.turbo/
+.next/
+.nuxt/
+.output/
+coverage/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Generated
+*.tsbuildinfo
