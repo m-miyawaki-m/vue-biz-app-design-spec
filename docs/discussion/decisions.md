@@ -62,9 +62,125 @@
 
 ---
 
+## DD-006: OpenAPI 生成方向 — Zod-first
+
+**決定**: Backend で Zod schema を真実源とし、`zod-to-openapi` (`@asteasolutions/zod-to-openapi` 等) で OpenAPI YAML を生成する。
+
+**理由**: 真実源が Zod 一つに集約されるため、OpenAPI YAML と実装のドリフトが構造的に発生しない。Prisma モデルとも共存しやすい。
+
+**代替案（不採用）**:
+
+- Backend コード-first (NestJS @nestjs/swagger): デコレータが冗長化しやすい
+- OpenAPI 手書き-first: YAML と実装のドリフトを人手で防ぐ必要があり保守困難
+
+---
+
+## DD-007: Backend フレームワーク — NestJS + Prisma + zod
+
+**決定**: NestJS を Backend フレームワークに採用し、Prisma を ORM、zod をスキーマ検証として組み合わせる。
+
+**理由**: 企業・受託案件で実績豊富。モジュール分割が業務系の規模感に合う。Prisma 公式統合あり。`@nestjs/zod` 等で Zod 連携も可能。
+
+**代替案（不採用）**:
+
+- Hono + @hono/zod-openapi: モダン軽量だが企業案件での実績がまだ薄い（DD-004 企業・受託スタイルとの整合性を優先）
+- Fastify + zod-to-openapi: 軽量で良いが、NestJS ほどのモジュール構造が標準化されていない
+
+---
+
+## DD-008: OpenAPI 配布方法 — Backend リポジトリ + GitHub Releases
+
+**決定**: Backend リポジトリ内で `openapi.yaml` を生成し、Backend のリリース時に Git タグ付け + GitHub Releases にアセットとして添付する。フロント側はバージョン固定でダウンロード/参照する。
+
+**理由**: チーム完全分離 (DD-001) でもフロント側は Backend ソース閲覧不要。バージョン固定取得が容易。専用リポジトリを増やすオーバーヘッドなし。
+
+**代替案（不採用）**:
+
+- 専用「contract」リポジトリ: リポジトリ運用コストが増える
+- npm private package: registry 運用コスト・権限管理が増える
+- git submodule: 開発体験が悪い
+
+---
+
+## DD-009: orval 生成構成 — axios + TanStack Query for Vue + Zod runtime + MSW mock
+
+**決定**: orval の出力構成として以下を採用する。
+
+- HTTP クライアント: axios
+- データフェッチング: TanStack Query for Vue (Vue Query)
+- ランタイム検証: Zod schema を OpenAPI から再生成し、実行時にレスポンスを検証
+- モック: `--mock=msw` で MSW モックを同時生成
+
+**理由**: TanStack Query は一覧/キャッシュ/楽観更新が業務系 CRUD に強い。Zod 実行時検証で API 契約違反を即検出。MSW で Backend 独立開発可能 (DD-012 と整合)。
+
+---
+
+## DD-010: エラーレスポンス規格 — RFC 7807 + 業務エラーコード
+
+**決定**: API のエラーレスポンスは RFC 7807 (Problem Details for HTTP APIs) に準拠し、業務エラーコード `errorCode: "E-{領域}-{番号}"` を拡張フィールドとして付与する。
+
+**理由**: 標準仕様のため各種ツール対応がある。業務エラーコード体系で運用・問合せ対応が楽になる。
+
+**フィールド例**:
+
+```json
+{
+  "type": "https://example.com/errors/validation",
+  "title": "Validation Error",
+  "status": 400,
+  "detail": "顧客コードは必須です",
+  "instance": "/customers",
+  "errorCode": "E-CUSTOMER-001",
+  "errors": [{ "field": "customerCode", "message": "必須" }]
+}
+```
+
+---
+
+## DD-011: 認証方式 — JWT + プラットフォーム別ストレージ
+
+**決定**: 認証は以下の構成で統一する。
+
+- 短命 access token (例: 15 分) + refresh token rotation
+- **Web**: refresh token を httpOnly Cookie に保管、access token はメモリ
+- **Android**: refresh/access token を Capacitor Secure Storage (Android Keystore 経由) に保管
+
+**理由**: Web/モバイル両対応の標準的構成。Refresh rotation で漏洩耐性向上。Web は httpOnly Cookie で XSS 耐性、Android は OS のセキュアストレージを活用。
+
+**代替案（不採用）**:
+
+- OAuth2/OIDC (Keycloak 等の IdP 分離): SSO/監査要件があれば再検討。初期は不要
+- セッション Cookie のみ: モバイル対応で不利
+
+---
+
+## DD-012: モック戦略 — orval MSW + Prism
+
+**決定**: モック戦略を二層構成にする。
+
+- **開発時 (フロント単独開発)**: orval が生成する MSW mock を使用
+- **結合テスト・E2E**: Prism (OpenAPI モックサーバー) を CI/コンテナで起動
+
+**理由**: フロント 2 チームが Backend 完成を待たずに着手可能 (DD-001 のチーム完全分離前提と整合)。CI でも回せる。
+
+---
+
+## DD-013: API バージョニング — URL パス + Semver
+
+**決定**: API バージョニングは URL パス方式 (`/v1/`, `/v2/`) を採用し、Semver で管理する。
+
+**理由**: 業務系で最もシンプル・運用実績豊富。Web と Android が破壊変更を別タイミングで追従できる。
+
+**運用ルール**:
+
+- 非破壊変更 (フィールド追加・新エンドポイント): マイナー番号アップ、URL バージョン据え置き
+- 破壊変更 (フィールド削除・型変更): メジャー番号アップ、URL バージョン更新 (`/v2/`)
+- 旧バージョン (`/v1/`) は次のメジャーリリースから 6 ヶ月維持を推奨 (要件により調整)
+
+---
+
 ## 未決定論点（次に議論）
 
-- 契約レイヤー詳細 8 論点 — [01-contract-layer-proposal.md](01-contract-layer-proposal.md) でレビュー中
 - 設計書体系（Web 用・Android 用それぞれの成果物リストと各文書の章立て）
 - 実装ステップ（フェーズ定義 / 各フェーズで何を確定させるか）
 - 技術選定の詳細比較（Vuetify3 vs PrimeVue vs Quasar、Ionic vs Capacitor 単体 vs 他）
