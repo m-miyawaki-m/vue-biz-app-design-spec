@@ -351,9 +351,86 @@
 
 ---
 
+## DD-032: リポジトリ構成 — 3 リポジトリ独立 + 任意の docs リポジトリ
+
+**決定**: `<案件>-backend` / `<案件>-web` / `<案件>-android` の 3 リポジトリを独立で持つ。共有設計書集約用に `<案件>-docs` を任意で追加可能。命名規約はハイフン区切り英小文字。
+
+**理由**: Approach C のチーム完全分離前提と一致。リポジトリ単位で権限・CI が独立。
+
+---
+
+## DD-033: Node.js / パッケージマネージャ — Node LTS + pnpm
+
+**決定**: Node.js は LTS (時点で v22 LTS)、パッケージマネージャは **pnpm** を採用。バージョン固定は `.nvmrc` または `.tool-versions` + Volta/fnm。
+
+**理由**: pnpm は高速・ロック厳密・ディスク効率。Monorepo 化しなくても利点を活用可能。
+
+---
+
+## DD-034: IDE — VS Code + 共通拡張機能セット
+
+**決定**: 全プロジェクトで VS Code を推奨。必須拡張機能セット（Vue Volar、ESLint、Prettier、EditorConfig、GitLens、Error Lens、Code Spell Checker）+ プロジェクト別追加（Prisma / Vuetify / Ionic）を定める。
+
+`.vscode/settings.json` の共通設定（保存時フォーマット、ESLint 自動修正、改行コード LF 等）を各リポジトリで採用する。
+
+---
+
+## DD-035: ブランチ戦略 — GitHub Flow + Squash Merge
+
+**決定**: GitHub Flow を採用。`main` 直 push 禁止、全変更 PR 経由、Required Status Checks 全緑 + 1 名以上レビューで merge 可能。Merge は Squash & Merge。
+
+**理由**: シンプルでチーム独立性とも整合。
+
+---
+
+## DD-036: PR テンプレート / Branch Protection の標準化
+
+**決定**: `.github/pull_request_template.md` で「概要 / 関連 Issue / 変更タイプ / 動作確認 / レビュアー向けメモ」を必須化。Branch Protection (1 名以上のレビュー + 全 CI 緑 + Linear history) を main に設定する。
+
+---
+
+## DD-037: CI/CD — GitHub Actions、各プロジェクト独立 + OpenAPI 同期チェック
+
+**決定**: GitHub Actions で各プロジェクト独立に CI/CD を構成。
+
+- **Backend**: typecheck / lint / unit test / integration test (Docker Compose) / OpenAPI 自動生成 / Docker build → GHCR push / OpenAPI publish (GitHub Releases) / デプロイ
+- **Web**: typecheck / lint / unit test / component test / e2e (Playwright) / OpenAPI sync check / Vite build → S3+CloudFront or Cloudflare Pages
+- **Android**: 上記 + Capacitor build → Firebase App Distribution → Google Play Internal Testing
+
+**特記**: Web/Android は Backend Releases の最新 OpenAPI と orval 生成済みファイルの整合性チェック (`openapi-sync-check` ジョブ) を毎日 + PR 時に実行。API 変更見逃しを防ぐ。
+
+---
+
+## DD-038: シークレット管理 — GitHub Secrets + 本番は外部 Secrets Manager
+
+**決定**: ローカルは `.env.local` (gitignore)、CI は GitHub Secrets / GitHub Environments、本番は AWS Secrets Manager / Doppler / HashiCorp Vault のいずれか。開発者間の一時共有は 1Password / Bitwarden 等。
+
+**禁止事項**: `.env` の Git コミット / Secret の平文送信 / CI ログへの出力。
+
+---
+
+## DD-039: 環境分離 — local / dev / staging / production の 4 環境
+
+**決定**: 各プロジェクトで 4 環境を分離する。それぞれ別 Backend エンドポイント + 別 DB。
+
+- local: 開発者ローカル
+- dev: 統合開発環境 (最新 main 自動デプロイ)
+- staging: リリース前検証 (UAT)
+- production: 本番
+
+---
+
+## DD-040: 依存関係更新 — Renovate (推奨) または Dependabot
+
+**決定**: Renovate (推奨) または Dependabot で週次依存更新 PR を自動作成。メジャーはレビュー必須、マイナー・パッチは CI 緑で自動 merge 可能 (設定により切替)。
+
+**理由**: セキュリティ脆弱性の継続的対応と保守工数の削減。Renovate のほうがグループ化・スケジュール柔軟性が高い。
+
+---
+
 ## 未決定論点（次に議論）
 
-- 開発環境（Node/pnpm、IDE、CI/CD、Docker、ブランチ戦略、シークレット管理）
+- テスト方法（ユニット / 結合 / E2E / モバイル実機 / 性能 / セキュリティ / カバレッジ目標）
 - 実装ステップ（フェーズ定義 / 各フェーズで何を確定させるか）
 - 技術選定の詳細比較（Vuetify3 vs PrimeVue vs Quasar、Ionic vs Capacitor 単体 vs 他）
 - 開発環境（IDE、ローカルセットアップ、Docker、CI/CD）
