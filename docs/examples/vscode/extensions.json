@@ -1,0 +1,21 @@
+{
+  "recommendations": [
+    "Vue.volar",
+    "vue.vscode-typescript-vue-plugin",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconfig",
+    "eamodio.gitlens",
+    "usernamehw.errorlens",
+    "streetsidesoftware.code-spell-checker",
+
+    "Prisma.prisma",
+    "rangav.vscode-thunder-client",
+
+    "ionic.ionic",
+    "ionic.ionicv8-snippets"
+  ],
+  "unwantedRecommendations": [
+    "octref.vetur"
+  ]
+}
