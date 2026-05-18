@@ -274,9 +274,86 @@
 
 ---
 
+## DD-023: Web UI ライブラリ — Vuetify 3
+
+**決定**: Web 版の UI ライブラリは **Vuetify 3** を採用する。
+
+**理由**: 業務系で必要なデータテーブル・フォーム・ダイアログが公式で揃う。Material Design は業務系で受け入れられやすい。ドキュメント充実、TypeScript 完全対応。
+
+**代替案（不採用）**: PrimeVue (次点、有償テンプレ前提箇所が多い) / Quasar (機能過剰) / Element Plus (中国系寄り) / Naive UI (実績薄)
+
+---
+
+## DD-024: Android UI 構成 — Vue + Ionic 8 + Capacitor
+
+**決定**: Android 版は **Vue + Ionic 8 + Capacitor** を採用する。
+
+**理由**: Web チームの Vue 知識を活用可能。Ionic コンポーネントがモバイル UX に最適化済み。Capacitor で Camera/Geolocation/Secure Storage/Push へアクセス可能。PWA としてもビルド可能。
+
+**代替案（不採用）**: React Native / Flutter / Kotlin (Vue 系から外れる) / Quasar Capacitor モード (Web 側との分離が薄れる)
+
+---
+
+## DD-025: ビルドツール — Vite
+
+**決定**: 全 3 プロジェクトで Vite を採用する。Vuetify/Ionic ともに公式推奨。
+
+---
+
+## DD-026: TypeScript 設定 — strict + 追加厳格オプション
+
+**決定**: 全プロジェクトで `strict: true` + `noUncheckedIndexedAccess: true` + `exactOptionalPropertyTypes: true` を採用する。
+
+**理由**: 業務系で型安全性を最大化。Zod ランタイム検証と組み合わせて契約違反を早期検出。
+
+---
+
+## DD-027: Lint/Format — ESLint + Prettier + 各種プラグイン
+
+**決定**: ESLint + Prettier + typescript-eslint + eslint-plugin-vue + eslint-plugin-import + eslint-plugin-security を採用。設定は各チームに**初期設定をコピー配布**する方針。
+
+**理由**: npm 共有パッケージ化は Approach C のチーム独立性を損なうため不採用。テンプレートは docs/templates/ で参照可能。
+
+---
+
+## DD-028: 状態管理 — Pinia (UI 状態) + TanStack Query (サーバー状態)
+
+**決定**: Pinia と TanStack Query for Vue を併用し、責務を分離する。
+
+- Pinia: ローカル UI 状態・認証ユーザー情報・フォーム下書き
+- TanStack Query: サーバー由来データのキャッシュ・再取得・楽観更新
+
+**理由**: 一つの状態管理で全部抱えるとキャッシュ戦略が複雑化。役割分離が業務系で運用しやすい。
+
+---
+
+## DD-029: 日付・時刻ライブラリ — date-fns
+
+**決定**: 全プロジェクトで `date-fns` を採用する。
+
+**理由**: 軽量・関数ベース・TypeScript フレンドリー。moment.js はメンテナンスモードのため不採用。
+
+---
+
+## DD-030: i18n — vue-i18n（将来追加可能設計）
+
+**決定**: 当面は単言語でも、`vue-i18n` 導入を前提とした「キー化された文言管理」を初期から行う。
+
+**理由**: 業務系で「将来多言語化」要件が後から出るケースが多い。初期から i18n キーで書いておけば追加コストが低い。
+
+---
+
+## DD-031: Backend 補強ライブラリ — Passport.js / BullMQ / pino / Helmet
+
+**決定**: NestJS 標準構成に加えて Passport.js (認証ストラテジ)、@nestjs/jwt、BullMQ + Redis (ジョブキュー)、pino + nestjs-pino (構造化ログ)、Helmet (セキュリティヘッダー) を採用する。DB は PostgreSQL を推奨。
+
+**理由**: 業務系 Backend の標準構成として実績豊富。
+
+---
+
 ## 未決定論点（次に議論）
 
-- 技術選定の詳細比較（Vuetify3 vs PrimeVue vs Quasar、Ionic vs 他、ビルドツール、ESLint/Prettier等）
+- 開発環境（Node/pnpm、IDE、CI/CD、Docker、ブランチ戦略、シークレット管理）
 - 実装ステップ（フェーズ定義 / 各フェーズで何を確定させるか）
 - 技術選定の詳細比較（Vuetify3 vs PrimeVue vs Quasar、Ionic vs Capacitor 単体 vs 他）
 - 開発環境（IDE、ローカルセットアップ、Docker、CI/CD）
