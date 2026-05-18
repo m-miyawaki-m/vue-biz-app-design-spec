@@ -1,7 +1,8 @@
 # 内部設計書 — [モジュール/コンポーネント名]
 
 > ひな型: vue-biz-app-design-spec/docs/templates/template-internal-design.md
-> Backend モジュール / Web コンポーネント群 / Android ページ群 のいずれにも適用可。
+> **Backend モジュール (Spring) 向けの主軸ひな型**。
+> Vue / Ionic フロントエンドのコンポーネント設計 (W5 / A6) は専用の `template-component-design.md` を優先する。本ひな型はフロントの汎用モジュール（共通処理層・SDK ラッパー等）にも適用可能。
 
 ## 0. 文書情報
 

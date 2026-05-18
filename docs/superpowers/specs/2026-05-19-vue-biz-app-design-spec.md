@@ -179,18 +179,19 @@ S2 データ辞書, S4 認証仕様, S5 エラーコード ←── 全 B/W/A �
 S6 非機能要件 ←── B3/B4/B6/B7 で具体化、W/A はクライアント影響範囲のみ参照
 ```
 
-### 3.3 章立てテンプレート (DD-016, DD-051)
+### 3.3 章立てテンプレート (DD-016, DD-051, DD-052)
 
 `docs/templates/` 配下に統一ひな型を整備:
 
 - `template-screen-list.md` — 画面一覧・画面遷移図（**概要レベル** W2/A2、DD-051）
 - `template-requirements.md` — 要件定義書
 - `template-screen-design.md` — 画面設計書（**詳細レベル**、コンポーネントツリー + 値のソースマップ含む、DD-051）
-- `template-internal-design.md` — 内部設計書
+- `template-component-design.md` — **W5/A6 専用** Vue/Ionic コンポーネント設計書（Atomic Design 分類 + Composables + 命名規約 + 実装パターン、DD-052）
+- `template-internal-design.md` — **B3** Backend モジュール内部設計書（Spring 主軸）
 - `template-test-spec.md` — テスト仕様書
 - `template-api-internal.md` — API 内部処理設計書
 
-Approach C の独立性を保ちつつ「目次は揃える」ことで、レビューと再利用性を向上させる。**概要レベル（screen-list）と詳細レベル（screen-design）の階層**で、Phase 2 早期 → Phase 2 後半〜Phase 3 の流れに沿った執筆順を設計に組み込んでいる。
+Approach C の独立性を保ちつつ「目次は揃える」ことで、レビューと再利用性を向上させる。**概要レベル（screen-list）と詳細レベル（screen-design）の階層**で、Phase 2 早期 → Phase 2 後半〜Phase 3 の流れに沿った執筆順を設計に組み込んでいる。Frontend (W5/A6) と Backend (B3) は専用ひな型に分離し、それぞれの語彙・パターンで書きやすくしている (DD-052)。
 
 ---
 
@@ -536,6 +537,7 @@ push to main の主要ジョブ:
 | DD-049 | 実機テスト — クラウド実機 + Firebase Test Lab                  |
 | DD-050 | Backend スタックを Java + Spring に変更（前提変更）           |
 | DD-051 | 設計書ひな型を追加・拡張（画面一覧・コンポーネントツリー・値のソースマップ） |
+| DD-052 | W5/A6 専用 `template-component-design.md` を採用、`template-internal-design.md` は Backend 主軸へ |
 
 各 DD の詳細（理由・代替案不採用理由）: `docs/discussion/decisions.md` 参照。
 

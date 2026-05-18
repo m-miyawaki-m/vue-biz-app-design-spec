@@ -583,10 +583,44 @@
 
 ---
 
+## DD-052: W5/A6 専用 `template-component-design.md` を採用
+
+**決定**: DD-051 で「将来検討」としていた W5/A6 Vue/Ionic 専用ひな型 `template-component-design.md` を採用する。`template-internal-design.md` は Backend (Spring) 主軸に位置付け直す。
+
+**追加されるひな型の主な章立て**:
+
+1. 設計方針（Atomic Design 分類、shared vs feature-specific）
+2. ディレクトリ構造（Web / Android Ionic 追加）
+3. コンポーネント一覧（ID 採番付き: CMP-V/L/O/S/M/A-NNN）
+4. 主要コンポーネント詳細（Props/Emits/Slots/内部状態/利用 Composables/子コンポーネント）
+5. Composables 一覧（引数・戻り値・責務）
+6. 命名規約（SFC/Composable/Store/型/ファイル名）
+7. スタイリング方針（Vuetify テーマ / Ionic CSS Variables）
+8. 共通実装パターン（フォーム / 一覧 / モーダル / エラー）
+9. アクセシビリティ規約
+10. テスト方針
+
+**ひな型の使い分け**:
+
+- **W5 / A6**: `template-component-design.md`（Vue/Ionic 専用、推奨）
+- **B3**: `template-internal-design.md`（Backend Spring 主軸、フロント共通モジュールにも兼用可）
+
+**理由**:
+
+- Vue/Ionic 特有の概念（Composables、SFC、Atomic Design 分類、Vuetify/Ionic スタイリング）を `template-internal-design.md` の汎用形式に押し込むと読み手の認知コストが高い
+- Composables 一覧・命名規約・共通実装パターンは Vue/Ionic 固有の標準化が必要
+- DD-051 で予告した「将来検討」を実施
+
+**`template-internal-design.md` の位置付け修正**:
+
+- 冒頭の説明を「Backend モジュール (Spring) 向け主軸ひな型。フロントの汎用モジュール（共通処理層・SDK ラッパー等）にも適用可」に改定
+- 「Vue/Ionic フロントエンドのコンポーネント設計 (W5/A6) は専用の `template-component-design.md` を優先する」と注記
+
+---
+
 ## 次のアクション
 
 - Backend 詳細 DD（OpenAPI 生成方針、MyBatis 規約、Spring Security 設定、Spring Batch、Flyway、JUnit/TestContainers、CI/CD Gradle 化）を別セッションで議論・確定する
-- 必要なら W5/A6 専用 `template-component-design.md` を将来追加検討
 - 実装ステップ（フェーズ定義 / 各フェーズで何を確定させるか）
 - 技術選定の詳細比較（Vuetify3 vs PrimeVue vs Quasar、Ionic vs Capacitor 単体 vs 他）
 - 開発環境（IDE、ローカルセットアップ、Docker、CI/CD）
