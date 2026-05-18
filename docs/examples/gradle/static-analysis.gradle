@@ -1,0 +1,187 @@
+// static-analysis.gradle
+// Backend (Java + Spring Boot + Gradle Groovy DSL) 静的解析・フォーマット標準設定
+// 案件の build.gradle 末尾で `apply from: 'static-analysis.gradle'` で取り込む。
+//
+// 含むツール:
+//   - Spotless           (Google Java Format でフォーマット強制)
+//   - Checkstyle         (google_checks.xml ベース)
+//   - SpotBugs           (バグパターン検出)
+//   - ErrorProne         (Javac レベル追加チェック、推奨)
+//   - JaCoCo             (テストカバレッジ)
+//
+// Status: Backend 詳細 DD-050 保留中の項目を補完する標準雛形 (DD-055)
+
+// =================================================
+// プラグイン取り込み (build.gradle 側で書く想定)
+// =================================================
+// plugins {
+//   id 'java'
+//   id 'org.springframework.boot' version '3.x.x'
+//   id 'io.spring.dependency-management' version '1.x.x'
+//   id 'com.diffplug.spotless' version '6.25.0'
+//   id 'checkstyle'
+//   id 'com.github.spotbugs' version '6.0.18'
+//   id 'net.ltgt.errorprone' version '4.0.1'
+//   id 'jacoco'
+// }
+
+// =================================================
+// Spotless: フォーマット強制
+// =================================================
+spotless {
+  java {
+    googleJavaFormat('1.22.0')
+    target 'src/**/*.java'
+    targetExclude 'src/generated/**'
+    removeUnusedImports()
+    importOrder('java', 'javax', 'org', 'com', '')
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+  groovyGradle {
+    target '*.gradle', '**/*.gradle'
+    greclipse()
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+  format 'misc', {
+    target '*.md', '.gitignore', '*.properties'
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+}
+
+// =================================================
+// Checkstyle: スタイル違反
+// =================================================
+checkstyle {
+  toolVersion = '10.17.0'
+  configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+  maxWarnings = 0
+  ignoreFailures = false
+}
+checkstyleMain {
+  reports {
+    xml.required = true
+    html.required = true
+    html.destination = file("$buildDir/reports/checkstyle/main.html")
+  }
+}
+checkstyleTest {
+  // テストコードはルール緩和（必要に応じて別 config）
+  enabled = false
+}
+
+// =================================================
+// SpotBugs: バグパターン検出
+// =================================================
+spotbugs {
+  toolVersion = '4.8.5'
+  effort = 'max'
+  reportLevel = 'low'           // low / medium / high
+  ignoreFailures = false
+  excludeFilter = rootProject.file('config/spotbugs/excludeFilter.xml')
+}
+spotbugsMain {
+  reports {
+    xml.required = false
+    html.required = true
+    html.destination = file("$buildDir/reports/spotbugs/main.html")
+  }
+}
+spotbugsTest {
+  enabled = false
+}
+
+dependencies {
+  spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.13.0'
+  spotbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:7.6.4'
+}
+
+// =================================================
+// ErrorProne: Javac レベル追加チェック
+// =================================================
+dependencies {
+  errorprone 'com.google.errorprone:error_prone_core:2.27.1'
+  // Null 安全 (NullAway) を追加する場合:
+  // errorprone 'com.uber.nullaway:nullaway:0.11.0'
+}
+tasks.withType(JavaCompile).configureEach {
+  options.errorprone {
+    enabled = true
+    disableWarningsInGeneratedCode = true
+    excludedPaths = '.*/generated/.*'
+    // NullAway を使う場合:
+    // option('NullAway:AnnotatedPackages', 'com.example.app')
+  }
+  options.compilerArgs += [
+    '-Xlint:all',
+    '-Werror',                // 警告をエラーに昇格
+  ]
+}
+
+// =================================================
+// JaCoCo: カバレッジ計測
+// =================================================
+jacoco {
+  toolVersion = '0.8.12'
+}
+
+jacocoTestReport {
+  dependsOn test
+  reports {
+    xml.required = true
+    html.required = true
+    html.destination = file("$buildDir/reports/jacoco/test/html")
+  }
+  // 生成コード・DTO のみのクラスを除外
+  classDirectories.setFrom(
+    files(classDirectories.files.collect {
+      fileTree(dir: it, exclude: [
+        '**/generated/**',
+        '**/dto/**',
+        '**/config/**',
+        '**/Application.class',
+      ])
+    })
+  )
+}
+
+jacocoTestCoverageVerification {
+  dependsOn jacocoTestReport
+  violationRules {
+    rule {
+      limit {
+        counter = 'LINE'
+        minimum = 0.80   // DD-042: ロジック層 80%
+      }
+      limit {
+        counter = 'BRANCH'
+        minimum = 0.80
+      }
+    }
+  }
+}
+
+// =================================================
+// チェック集約タスク
+// =================================================
+tasks.register('staticAnalysis') {
+  group = 'verification'
+  description = 'Run all static analysis (spotless / checkstyle / spotbugs / errorprone via compile)'
+  dependsOn 'spotlessCheck', 'checkstyleMain', 'spotbugsMain', 'compileJava'
+}
+
+// CI で 1 コマンドで全部走らせる
+tasks.register('ciVerify') {
+  group = 'verification'
+  description = 'CI verification: static analysis + tests + coverage'
+  dependsOn 'staticAnalysis', 'test', 'jacocoTestReport', 'jacocoTestCoverageVerification'
+}
+
+// =================================================
+// check タスクに統合 (gradle build で自動実行)
+// =================================================
+check {
+  dependsOn 'spotlessCheck', 'checkstyleMain', 'spotbugsMain', 'jacocoTestReport'
+}

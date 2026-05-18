@@ -1,0 +1,86 @@
+# lefthook.yml — Git hooks 共通設定
+# https://lefthook.dev/
+#
+# インストール (Frontend / Backend どちらでも):
+#   - macOS:  brew install lefthook
+#   - Linux:  curl -sSL https://lefthook.dev/install.sh | bash
+#   - Win:    scoop install lefthook  (or download from releases)
+#
+# 各リポジトリで:  lefthook install
+# pre-commit / pre-push が自動有効化される。
+
+pre-commit:
+  parallel: true
+  commands:
+    # ===== Frontend (Web / Android) =====
+    # 変更ファイルだけ format / lint / typecheck
+    format:
+      glob: "*.{ts,tsx,js,jsx,vue,json,md,yml,yaml,css,scss}"
+      run: pnpm exec prettier --write {staged_files}
+      stage_fixed: true
+      skip:
+        - merge
+        - rebase
+
+    lint:
+      glob: "*.{ts,tsx,js,jsx,vue}"
+      run: pnpm exec eslint --fix {staged_files}
+      stage_fixed: true
+      skip:
+        - merge
+        - rebase
+
+    typecheck:
+      glob: "*.{ts,tsx,vue}"
+      run: pnpm exec tsc --noEmit
+      skip:
+        - merge
+        - rebase
+
+    # ===== Backend (Java + Spring + Gradle) =====
+    # 注: java の glob にマッチしないと実行されない
+    spotless:
+      glob: "*.{java,gradle}"
+      run: ./gradlew spotlessApply -PstagedFiles="{staged_files}"
+      stage_fixed: true
+      skip:
+        - merge
+        - rebase
+
+    checkstyle:
+      glob: "*.java"
+      run: ./gradlew checkstyleMain
+      skip:
+        - merge
+        - rebase
+
+    # ===== 共通: Secret 検出 =====
+    gitleaks:
+      run: gitleaks protect --staged --redact --verbose
+      skip:
+        - merge
+        - rebase
+
+pre-push:
+  parallel: false
+  commands:
+    # push 前に全テスト走らせる
+    test-frontend:
+      glob: "*.{ts,tsx,vue}"
+      run: pnpm test --run
+
+    test-backend:
+      glob: "*.java"
+      run: ./gradlew test
+
+commit-msg:
+  commands:
+    # Conventional Commits 風のメッセージ規約 (任意)
+    # type(scope): subject  例: feat(customer): 一覧画面に検索フィルタを追加
+    lint-msg:
+      run: |
+        head -n 1 "{1}" | grep -E '^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\([a-z0-9-]+\))?: .{1,}' || {
+          echo "Commit message must follow: type(scope): subject"
+          echo "Allowed types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert"
+          exit 1
+        }

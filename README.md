@@ -22,7 +22,7 @@ Vue 系フロントエンド（Vuetify 3 / Vue + Ionic + Capacitor）で、Web �
 ## 主要ドキュメント
 
 - **[最終 spec](docs/superpowers/specs/2026-05-19-vue-biz-app-design-spec.md)** — まず読むべき統合ドキュメント
-- [設計判断ログ (decisions.md)](docs/discussion/decisions.md) — 全 DD-001〜DD-052 の理由と代替案
+- [設計判断ログ (decisions.md)](docs/discussion/decisions.md) — 全 DD-001〜DD-055 の理由と代替案
 - 各セクション詳細:
   - [01 契約レイヤー](docs/discussion/01-contract-layer-proposal.md)
   - [02 設計書体系](docs/discussion/02-document-set.md)
@@ -32,7 +32,7 @@ Vue 系フロントエンド（Vuetify 3 / Vue + Ionic + Capacitor）で、Web �
   - [06 テスト方法](docs/discussion/06-testing-strategy.md)
 - 再利用アーティファクト:
   - [docs/templates/](docs/templates/) — 設計書ひな型 7 種 (画面一覧 / 要件 / 画面設計 / コンポーネント設計 (Vue/Ionic) / 内部設計 (Backend) / テスト仕様 / API 内部処理)
-  - [docs/examples/](docs/examples/) — PR テンプレ / Issue テンプレ / 3 CI ワークフロー / tsconfig / eslint / vscode / docker / env / openapi
+  - [docs/examples/](docs/examples/) — PR テンプレ / Issue テンプレ / 3 CI ワークフロー / tsconfig / eslint / **prettier / editorconfig / lefthook / gradle静的解析 / checkstyle** / vscode / docker / env / openapi
   - [docs/checklists/](docs/checklists/) — フェーズゲート / PR レビュー / API 変更 / リリース / オンボーディング
 
 ## ディレクトリ構成
@@ -48,22 +48,27 @@ Vue 系フロントエンド（Vuetify 3 / Vue + Ionic + Capacitor）で、Web �
     │   └── plans/
     │       └── 2026-05-19-playbook-artifacts.md        # 実装計画
     ├── discussion/
-    │   ├── decisions.md                        # 設計判断ログ (DD-001〜DD-050)
+    │   ├── decisions.md                        # 設計判断ログ (DD-001〜DD-055)
     │   ├── 01-contract-layer-proposal.md       # 契約レイヤー
     │   ├── 02-document-set.md                  # 設計書体系
     │   ├── 03-implementation-steps.md          # 実装ステップ (9 Phase)
     │   ├── 04-tech-selection.md                # 技術選定詳細比較
     │   ├── 05-dev-environment.md               # 開発環境 (CI/CD・ブランチ戦略 等)
     │   └── 06-testing-strategy.md              # テスト方法 (テストピラミッド)
-    ├── templates/                              # 設計書ひな型 (5 種)
+    ├── templates/                              # 設計書ひな型 (7 種)
     ├── examples/                               # 設定・CI・契約の具体例
-    │   ├── github/
-    │   ├── tsconfig/
-    │   ├── eslint/
-    │   ├── vscode/
-    │   ├── docker/
-    │   ├── env/
-    │   └── openapi/
+    │   ├── github/                             # PR/Issue/CI ワークフロー
+    │   ├── tsconfig/                           # TS strict 設定 (DD-026)
+    │   ├── eslint/                             # ESLint Flat Config (DD-027)
+    │   ├── prettier/                           # Prettier 設定 (DD-054)
+    │   ├── editorconfig/                       # .editorconfig (DD-054)
+    │   ├── lefthook/                           # pre-commit hooks (DD-053)
+    │   ├── gradle/                             # Backend 静的解析 (DD-055)
+    │   ├── checkstyle/                         # Checkstyle 設定 (DD-055)
+    │   ├── vscode/                             # VS Code 設定 (DD-034)
+    │   ├── docker/                             # Docker Compose
+    │   ├── env/                                # .env.example
+    │   └── openapi/                            # RFC 7807 例 (DD-010)
     └── checklists/                             # 運用チェックリスト (5 種)
 ```
 

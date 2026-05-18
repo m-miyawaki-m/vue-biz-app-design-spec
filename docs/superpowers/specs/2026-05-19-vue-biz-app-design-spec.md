@@ -318,9 +318,31 @@ Node.js LTS + TypeScript (strict)
 }
 ```
 
-### 5.4 Lint / Format (DD-027)
+### 5.4 Lint / Format (DD-027, DD-054)
 
-ESLint + Prettier + typescript-eslint + eslint-plugin-vue + eslint-plugin-import + eslint-plugin-security。設定は npm パッケージ共有せず、各チームに**初期コピー配布**。
+**Frontend**: ESLint + Prettier + typescript-eslint + eslint-plugin-vue + eslint-plugin-import + eslint-plugin-security。
+
+Prettier 設定は `printWidth: 100 / singleQuote: true / trailingComma: 'all' / endOfLine: 'lf'` ほかを `.prettierrc.json` で標準化。`.editorconfig` を全リポジトリ配備 (DD-054)。設定は npm パッケージ共有せず、各チームに**初期コピー配布**。
+
+**Backend (Java) 静的解析・カバレッジ (DD-055)**:
+
+- **Spotless** + **Google Java Format** — フォーマット強制
+- **Checkstyle** — スタイル違反（Google Java Style ベース）
+- **SpotBugs** + FindSecBugs プラグイン — バグ・セキュリティパターン検出
+- **ErrorProne** — Javac レベル追加チェック
+- **JaCoCo** — テストカバレッジ（ライン 80% / ブランチ 80%）
+
+集約タスク `./gradlew ciVerify` で CI 1 コマンドで全部実行可能。SonarQube は将来検討（案件規模次第）。
+
+### 5.5 Git Hooks — lefthook (DD-053)
+
+全リポジトリで **lefthook** を採用し、pre-commit / pre-push / commit-msg を共通管理:
+
+- pre-commit: 変更ファイルだけ format/lint/typecheck/secret 検出
+- pre-push: 単体テスト
+- commit-msg: Conventional Commits 風メッセージ規約
+
+Go バイナリで Frontend (Node) / Backend (Java) 両方で同じ設定が使える。
 
 詳細比較表（採用しなかった候補と理由）は `docs/discussion/04-tech-selection.md` 参照。
 
@@ -538,6 +560,9 @@ push to main の主要ジョブ:
 | DD-050 | Backend スタックを Java + Spring に変更（前提変更）           |
 | DD-051 | 設計書ひな型を追加・拡張（画面一覧・コンポーネントツリー・値のソースマップ） |
 | DD-052 | W5/A6 専用 `template-component-design.md` を採用、`template-internal-design.md` は Backend 主軸へ |
+| DD-053 | pre-commit hook ツール — lefthook 採用（Frontend / Backend 共通）                |
+| DD-054 | Frontend Prettier 設定詳細 + `.editorconfig` 採用                                  |
+| DD-055 | Backend 静的解析・カバレッジ — Spotless / Checkstyle / SpotBugs / ErrorProne / JaCoCo |
 
 各 DD の詳細（理由・代替案不採用理由）: `docs/discussion/decisions.md` 参照。
 
@@ -555,7 +580,7 @@ push to main の主要ジョブ:
 | `docs/discussion/05-dev-environment.md`                         | 開発環境                              |
 | `docs/discussion/06-testing-strategy.md`                        | テスト方法                            |
 | `docs/templates/*.md`                                           | 設計書ひな型 6 種（概要/詳細階層あり、DD-051）|
-| `docs/examples/`                                                | 設定・CI・契約の具体例コピー元         |
+| `docs/examples/`                                                | 設定・CI・契約・静的解析の具体例コピー元（DD-053/054/055 含む）|
 | `docs/checklists/*.md`                                          | フェーズゲート / PR / API 変更 / リリース / オンボーディング |
 
 ---

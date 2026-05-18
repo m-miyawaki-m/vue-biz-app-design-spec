@@ -1,5 +1,6 @@
 # Backend CI (Java + Spring Boot + MyBatis + Gradle Groovy DSL)
 # Status: SKELETON — DD-050 保留中。Spring 詳細 (springdoc-openapi、Flyway、TestContainers 等) 確定後に詰める。
+# 静的解析・カバレッジは DD-055 で標準化済み (spotless / checkstyle / spotbugs / errorprone / jacoco)。
 
 name: Backend CI
 
@@ -15,7 +16,7 @@ permissions:
 
 jobs:
   static:
-    name: Static checks (compile / checkstyle / spotbugs)
+    name: Static checks (format / checkstyle / spotbugs / errorprone)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,11 +25,25 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew compileJava
-      # - run: ./gradlew checkstyleMain spotbugsMain    # 採否決定後に有効化
+      - name: Spotless format check
+        run: ./gradlew spotlessCheck
+      - name: Checkstyle
+        run: ./gradlew checkstyleMain
+      - name: SpotBugs (含 FindSecBugs)
+        run: ./gradlew spotbugsMain
+      - name: Compile (with ErrorProne)
+        run: ./gradlew compileJava
+      - name: Upload static analysis reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-analysis-reports
+          path: |
+            build/reports/checkstyle/
+            build/reports/spotbugs/
 
   unit:
-    name: Unit tests (JUnit 5)
+    name: Unit tests + Coverage (JUnit 5 + JaCoCo)
     needs: static
     runs-on: ubuntu-latest
     steps:
@@ -38,12 +53,15 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew test
+      - name: Run tests + coverage
+        run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-reports
-          path: build/reports/tests/test/
+          path: |
+            build/reports/tests/test/
+            build/reports/jacoco/
 
   integration:
     name: Integration tests (TestContainers + PostgreSQL)

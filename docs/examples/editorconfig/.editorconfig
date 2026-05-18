@@ -1,0 +1,37 @@
+# EditorConfig — IDE 非依存の最低限フォーマット規約
+# https://editorconfig.org/
+# Prettier / Spotless と整合させる
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 100
+
+# Java (Backend) は 4 スペース、行長 100
+[*.java]
+indent_size = 4
+max_line_length = 100
+
+# Kotlin (Android Capacitor 周辺で使うことがある)
+[*.{kt,kts}]
+indent_size = 4
+max_line_length = 100
+
+# Gradle
+[*.{gradle,gradle.kts}]
+indent_size = 4
+
+# Markdown は末尾空白を保持（改行を活用するため）
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = 0
+
+# Makefile はタブ必須
+[Makefile]
+indent_style = tab

@@ -618,9 +618,106 @@
 
 ---
 
+## DD-053: pre-commit hook ツール — lefthook 採用（Frontend / Backend 共通）
+
+**決定**: 3 リポジトリ（Backend / Web / Android）すべてで **lefthook** を pre-commit / pre-push / commit-msg hook の共通ツールとして採用する。
+
+**選定理由**:
+
+- Go バイナリで言語非依存。Node 専用の husky や Python 専用の pre-commit と異なり、Backend (Java/Gradle) でもそのまま使える
+- 設定が YAML 1 ファイル (`lefthook.yml`) で完結
+- 並列実行サポートで pre-commit が高速
+- `glob` フィルタで「変更ファイルだけ実行」が標準
+- Approach C (DD-001) のチーム分離下でも、共通ツールにすることでオンボーディング・PR レビュー観点が揃う
+
+**代替案（不採用）**:
+
+- husky + lint-staged: Frontend 専用で Backend に流用しにくい
+- pre-commit (Python): Python ランタイム前提が増える
+- 生 .git/hooks: チーム間で揃わない・install 手順が複雑
+
+**運用ルール**:
+
+- 各リポジトリに `lefthook.yml` を配備
+- 開発者は `lefthook install` を初回実行（CONTRIBUTING.md に記載）
+- hook 内容: pre-commit (format/lint/typecheck/secret 検出) / pre-push (test) / commit-msg (Conventional Commits)
+
+詳細サンプル: `docs/examples/lefthook/lefthook.yml`
+
+---
+
+## DD-054: Frontend Prettier 設定詳細 + editorconfig 採用
+
+**決定**: Frontend (Web / Android) の Prettier 設定を以下で標準化する。各案件は `.prettierrc.json` をコピー配布。
+
+```json
+{
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "arrowParens": "always",
+  "endOfLine": "lf"
+}
+```
+
+加えて、IDE 非依存の最低限規約として **`.editorconfig`** を全リポジトリ（Backend 含む）に配備する。Java / Kotlin / Markdown 等の言語別 override を含む。
+
+**理由**:
+
+- DD-027 で「ESLint + Prettier 採用」を決めたが具体設定が暗黙だった。実装時の議論を避けるため明示化
+- `.editorconfig` で IDE の最低限規約（改行コード LF、UTF-8、末尾改行）を IDE 種類を問わず担保
+- Backend の Spotless との整合（行末改行、UTF-8）も `.editorconfig` で揃う
+
+詳細サンプル: `docs/examples/prettier/.prettierrc.json` / `docs/examples/editorconfig/.editorconfig`
+
+---
+
+## DD-055: Backend 静的解析・カバレッジ — Spotless / Checkstyle / SpotBugs / ErrorProne / JaCoCo
+
+**決定**: Backend (Java + Spring Boot + Gradle) で以下 5 ツールを採用する。
+
+| ツール        | 用途                                                    | プラグイン                                   |
+| ------------- | ------------------------------------------------------- | -------------------------------------------- |
+| **Spotless**  | フォーマット強制（Google Java Format ベース）            | `com.diffplug.spotless`                      |
+| **Checkstyle** | スタイル違反（Google Java Style ベース、案件向け緩和あり） | `checkstyle` (Gradle 標準)                   |
+| **SpotBugs**  | バグパターン検出（+ FindSecBugs プラグイン）             | `com.github.spotbugs`                        |
+| **ErrorProne** | Javac レベル追加チェック（null 安全等の追加可能）        | `net.ltgt.errorprone`                        |
+| **JaCoCo**    | テストカバレッジ計測（目標: ライン 80% / ブランチ 80%）   | `jacoco` (Gradle 標準)                       |
+
+集約タスク:
+
+- `./gradlew staticAnalysis` — spotlessCheck + checkstyleMain + spotbugsMain + compileJava (ErrorProne)
+- `./gradlew ciVerify` — staticAnalysis + test + jacocoTestReport + jacocoTestCoverageVerification
+
+CI 配置:
+
+- backend-ci.yml の `static` ジョブで spotlessCheck / checkstyleMain / spotbugsMain / compileJava を順次実行
+- backend-ci.yml の `unit` ジョブで test + jacocoTestReport + 80% カバレッジ閾値検証
+- レポート (HTML/XML) を artifact としてアップロード
+
+**代替案（採用検討の上、不採用）**:
+
+- **PMD**: Checkstyle / SpotBugs と検出ルールが重複。三重チェックは過剰
+- **SonarQube / SonarCloud**: 統合解析として強力だが運用コスト・予算が必要。**将来検討**（案件規模次第）
+- **Mutation Testing (Pitest)**: テスト品質向上に効くが学習コスト・実行時間が大きい。将来検討
+
+**FindSecBugs プラグイン**: SpotBugs のセキュリティ拡張として併用採用（DD-048 のセキュリティ静的解析を Backend 側で強化）。
+
+詳細サンプル:
+
+- `docs/examples/gradle/static-analysis.gradle` — Gradle 標準設定
+- `docs/examples/checkstyle/checkstyle.xml` — Checkstyle 設定
+
+---
+
 ## 次のアクション
 
 - Backend 詳細 DD（OpenAPI 生成方針、MyBatis 規約、Spring Security 設定、Spring Batch、Flyway、JUnit/TestContainers、CI/CD Gradle 化）を別セッションで議論・確定する
+- 案件規模次第で SonarQube / SonarCloud 統合を将来検討
+- 必要なら Mutation Testing (Pitest) を将来追加検討
 - 実装ステップ（フェーズ定義 / 各フェーズで何を確定させるか）
 - 技術選定の詳細比較（Vuetify3 vs PrimeVue vs Quasar、Ionic vs Capacitor 単体 vs 他）
 - 開発環境（IDE、ローカルセットアップ、Docker、CI/CD）

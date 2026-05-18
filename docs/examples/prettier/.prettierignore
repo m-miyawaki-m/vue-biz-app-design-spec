@@ -1,0 +1,30 @@
+node_modules
+dist
+build
+coverage
+.cache
+.parcel-cache
+.turbo
+.next
+.nuxt
+.output
+
+# orval 自動生成
+src/api/generated
+
+# Capacitor / Android ビルド成果物
+android/app/build
+android/.gradle
+ios/App/build
+
+# CI artifacts
+playwright-report
+test-results
+
+# 設定済み IDE
+.idea
+.vscode/*.json
+
+# OS
+.DS_Store
+Thumbs.db
