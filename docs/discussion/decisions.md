@@ -499,13 +499,60 @@
 
 ---
 
-## 未決定論点（次に議論）
+## DD-050: Backend スタックを Java + Spring に変更（前提変更）
 
-(なし — 全セクション確定)
+**決定**: Backend は当初の Node.js (NestJS + Prisma + Zod) 想定から **Java + Spring Boot 3.x + MyBatis + Gradle (Groovy DSL)** に変更する。
+
+**理由**: 案件・チームの前提（Java + Spring）に合わせる。
+
+**確定済みの大枠スタック**:
+
+- 言語: **Java 21 LTS**
+- フレームワーク: **Spring Boot 3.x**（Web MVC）
+- データアクセス: **MyBatis**（業務系で SQL 制御を握りたいケース向け、日本の受託で実績豊富）
+- ビルド: **Gradle (Groovy DSL)**
+
+**影響を受ける DD**（詳細は保留）:
+
+| DD     | 当初の値                                            | 変更後の方向性                                                                            | 状態     |
+| ------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------- |
+| DD-005 | orval / Zod / Prisma 前提                           | orval / Zod は frontend のみ前提。Backend は Java + Spring + MyBatis 前提                  | 部分修正 |
+| DD-006 | OpenAPI 生成 = Zod-first → zod-to-openapi          | **保留**: springdoc-openapi / Spring REST Docs / OpenAPI 手書き から再選定が必要         | 保留     |
+| DD-007 | Backend FW = NestJS + Prisma + Zod                  | Spring Boot 3.x + MyBatis + Bean Validation に置換                                        | 大枠決定 |
+| DD-008 | OpenAPI 配布 = Backend リポ + GitHub Releases       | 不変（生成方法のみ gradle タスク経由に変更）                                              | 不変     |
+| DD-009 | orval 構成                                          | 不変（frontend 側）                                                                       | 不変     |
+| DD-010 | RFC 7807 + 業務エラーコード                         | 不変（Spring Boot 3 はネイティブで `ProblemDetail` をサポート）                            | 不変     |
+| DD-011 | JWT + Cookie / Secure Storage                       | 認証方式は不変。実装は **Spring Security + OAuth2 Resource Server (JWT)** に変更         | 部分修正 |
+| DD-012 | orval MSW + Prism                                   | 不変                                                                                      | 不変     |
+| DD-013 | URL パスバージョニング + Semver                     | 不変                                                                                      | 不変     |
+| DD-031 | Passport.js / @nestjs/jwt / BullMQ / pino / Helmet  | **保留**: Spring Security / Spring Batch / Logback + Logstash encoder 系へ置換予定         | 保留     |
+| DD-033 | Node LTS + pnpm                                     | frontend は不変。Backend は **Java 21 LTS + Gradle (Groovy DSL)** を追加                  | 追加     |
+| DD-034 | VS Code + 共通拡張                                  | frontend は不変。Backend は **IntelliJ IDEA** を推奨に追加                                | 追加     |
+| DD-037 | CI/CD GitHub Actions                                | frontend は不変。Backend ジョブは npm/pnpm → **gradle build / test / bootBuildImage** に置換 | 保留     |
+| DD-043 | 単体テスト Backend = Jest                           | **JUnit 5 + AssertJ + Mockito + TestContainers** に置換                                  | 大枠決定 |
+
+## Backend 詳細の保留事項（後日決着）
+
+以下は Backend スタック決定後に詳細を詰める:
+
+- [ ] OpenAPI 生成方針: **springdoc-openapi-starter-webmvc-ui** / Spring REST Docs / 手書き YAML から選定（推奨: springdoc-openapi）
+- [ ] MyBatis Mapper の管理規約（XML マッパー / アノテーション、SQL ID 命名、Generator 採用可否）
+- [ ] Bean Validation の活用範囲（DTO / Form / Command）
+- [ ] 認証実装詳細（Spring Security 設定、JWT エンコード方式、Refresh Token Rotation 実装）
+- [ ] バッチ実装方式（Spring Batch / Spring Boot @Scheduled / Quartz）
+- [ ] DB マイグレーション（**Flyway** / Liquibase）
+- [ ] DTO ↔ MyBatis 結果型マッピング（手書き / MapStruct）
+- [ ] ロギング詳細（Logback + logstash-logback-encoder 構造化ログ）
+- [ ] テスト関連（JUnit 5 + AssertJ + Mockito + TestContainers + RestAssured）
+- [ ] Java 系 IDE 拡張（IntelliJ プラグイン / Eclipse + STS）
+- [ ] Gradle 設定の標準化（Spring Boot Gradle Plugin、依存バージョン管理）
+- [ ] Backend 用 Docker イメージ化（`gradle bootBuildImage` の活用可否、CIS Hardened JRE 採否）
+
+上記が決まり次第、影響を受ける DD を再起こし（DD-051 以降として追記）、Backend 関連の discussion ドキュメント（`07-backend-stack.md` 等）と最終 spec を更新する。
 
 ## 次のアクション
 
-- 最終 spec ドキュメントを `docs/superpowers/specs/2026-05-19-vue-biz-app-design-spec.md` として集約する
+- Backend 詳細 DD（OpenAPI 生成方針、MyBatis 規約、Spring Security 設定、Spring Batch、Flyway、JUnit/TestContainers、CI/CD Gradle 化）を別セッションで議論・確定する
 - 実装ステップ（フェーズ定義 / 各フェーズで何を確定させるか）
 - 技術選定の詳細比較（Vuetify3 vs PrimeVue vs Quasar、Ionic vs Capacitor 単体 vs 他）
 - 開発環境（IDE、ローカルセットアップ、Docker、CI/CD）

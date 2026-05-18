@@ -4,6 +4,8 @@ Vue 系フロントエンド（Vuetify 3 / Vue + Ionic + Capacitor）で、Web �
 
 コードの実装はせず、設計プロセス・ドキュメント体系・開発環境・テスト方法の検討に専念する。
 
+> ⚠ **Backend スタック変更通知（2026-05-19）**: Backend は当初想定の Node.js (NestJS + Prisma + Zod) から **Java 21 + Spring Boot 3.x + MyBatis + Gradle (Groovy DSL)** に変更。詳細 DD は保留中（[DD-050](docs/discussion/decisions.md#dd-050-backend-スタックを-java--spring-に変更前提変更) 参照）。本リポジトリの Backend 関連記述は今後更新される。Frontend / 契約レイヤー / 設計書体系 / 実装ステップ / 開発環境（Frontend 部分）/ テスト戦略（Frontend 部分）は不変で有効。
+
 ## スコープ
 
 - 想定アプリ性質: 入力・一覧・フォーム中心の業務系

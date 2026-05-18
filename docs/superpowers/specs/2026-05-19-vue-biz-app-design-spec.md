@@ -1,8 +1,27 @@
 # Vue 系 Web + Android 業務アプリ 設計スペック集
 
 > 作成日: 2026-05-19
-> ステータス: **ユーザレビュー待ち**
+> ステータス: **ユーザレビュー待ち（Backend 関連は前提変更あり、詳細保留）**
 > リポジトリ: https://github.com/m-miyawaki-m/vue-biz-app-design-spec
+
+> ⚠ **Backend スタック変更通知（DD-050、2026-05-19 更新）**
+>
+> 本ドキュメント本文中の Backend 関連記述は当初 **Node.js + NestJS + Prisma + Zod** 前提で書かれているが、
+> 実際の Backend は **Java 21 + Spring Boot 3.x + MyBatis + Gradle (Groovy DSL)** に変更された。
+> Backend 詳細 DD（OpenAPI 生成方針、MyBatis 規約、Spring Security 設定、Spring Batch、Flyway、JUnit/TestContainers、CI/CD Gradle 化など）は保留中で、後日別セッションで詰める予定。
+>
+> 以下のセクションは Backend に依存せず**そのまま有効**:
+>
+> - Section 1（アプローチと前提）— Approach C は不変
+> - Section 2（契約レイヤー）— DD-008/009/010/012/013 は不変、DD-006/007 は方向性のみ確定し詳細保留、DD-011 は方式不変・実装変更
+> - Section 3（設計書体系）— 全文有効（B1-B8 の章立ては不変）
+> - Section 4（実装ステップ）— 全文有効
+> - Section 5.1 Web / Android スタック — 不変
+> - Section 5.1 Backend スタック — **Java + Spring + MyBatis に読み替え（詳細未確定）**
+> - Section 6（開発環境）— Frontend 部分は不変、Backend 部分は Gradle/IntelliJ/JUnit ベースに読み替え
+> - Section 7（テスト方法）— Frontend 部分は不変、Backend は JUnit 5 + AssertJ + Mockito + TestContainers + RestAssured 系に読み替え
+>
+> 詳細な影響範囲は [DD-050](../../discussion/decisions.md) を参照。
 
 ## 0. このスペックは何か
 
