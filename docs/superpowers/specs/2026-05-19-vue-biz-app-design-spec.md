@@ -542,13 +542,16 @@ push to main の主要ジョブ:
 
 | ドキュメント                                                    | 内容                                  |
 | --------------------------------------------------------------- | ------------------------------------- |
-| `docs/discussion/decisions.md`                                  | 設計判断ログ (全 DD-001〜DD-049)      |
+| `docs/discussion/decisions.md`                                  | 設計判断ログ (全 DD-001〜DD-050)      |
 | `docs/discussion/01-contract-layer-proposal.md`                 | 契約レイヤー詳細案                    |
 | `docs/discussion/02-document-set.md`                            | 設計書体系（成果物リスト）             |
 | `docs/discussion/03-implementation-steps.md`                    | 実装ステップ（フェーズ定義）           |
 | `docs/discussion/04-tech-selection.md`                          | 技術選定詳細比較                       |
 | `docs/discussion/05-dev-environment.md`                         | 開発環境                              |
 | `docs/discussion/06-testing-strategy.md`                        | テスト方法                            |
+| `docs/templates/*.md`                                           | 設計書ひな型 (S/B/W/A 共通枠 5 種)     |
+| `docs/examples/`                                                | 設定・CI・契約の具体例コピー元         |
+| `docs/checklists/*.md`                                          | フェーズゲート / PR / API 変更 / リリース / オンボーディング |
 
 ---
 
