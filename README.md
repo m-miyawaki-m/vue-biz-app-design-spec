@@ -1,6 +1,6 @@
 # vue-biz-app-design-spec
 
-Vue 系フロントエンド（Vuetify 3 / Vue + Ionic + Capacitor）で、Web 版と Android 版を**完全分離コードベース**として開発する**業務系（CRUD）アプリ**の、設計書体系・実装ステップ・技術選定・テスト方法を整理する設計スペック集。
+Vue 系フロントエンド（Vuetify 3 / Vue + Ionic + Capacitor）で、Web 版と Android 版を**完全分離コードベース**として開発する**業務系（CRUD）アプリ**の、設計書体系・実装ステップ・技術選定・開発環境・テスト方法を整理した設計プレイブック。
 
 コードの実装はせず、設計プロセス・ドキュメント体系・開発環境・テスト方法の検討に専念する。
 
@@ -11,18 +11,56 @@ Vue 系フロントエンド（Vuetify 3 / Vue + Ionic + Capacitor）で、Web �
 - Android 版: モバイル補助 UI
 - 開発体制: 企業・受託スタイル（要件定義書〜テスト仕様書を一通り揃える）
 - アプローチ: **Approach C** — Web/Android は完全独立プロジェクト。Backend API のみ共有契約。
-- バックエンド前提: **orval / zod / prisma** をベースとした TypeScript スタック
-
-## ディレクトリ
-
-- `docs/discussion/` — ブレインストーミング過程・意思決定ログ
-- `docs/superpowers/specs/` — 最終 spec ドキュメント
+- バックエンド前提: **NestJS + Prisma + Zod + orval** をベースとした TypeScript スタック
 
 ## ステータス
 
-ブレインストーミング進行中（契約レイヤー詳細 → 設計書体系 → 実装ステップ → 技術選定 → 開発環境 → テスト方法 の順で整理予定）。
+**ユーザレビュー待ち**（全 6 セクション確定、最終 spec 完成）
 
-## 進行中の検討
+## 主要ドキュメント
 
-- [docs/discussion/decisions.md](docs/discussion/decisions.md) — これまでの意思決定ログ
-- [docs/discussion/01-contract-layer-proposal.md](docs/discussion/01-contract-layer-proposal.md) — 契約レイヤー推奨構成案（レビュー中）
+- **[最終 spec](docs/superpowers/specs/2026-05-19-vue-biz-app-design-spec.md)** — まず読むべき統合ドキュメント
+- [設計判断ログ (decisions.md)](docs/discussion/decisions.md) — 全 DD-001〜DD-049 の理由と代替案
+- 各セクション詳細:
+  - [01 契約レイヤー](docs/discussion/01-contract-layer-proposal.md)
+  - [02 設計書体系](docs/discussion/02-document-set.md)
+  - [03 実装ステップ](docs/discussion/03-implementation-steps.md)
+  - [04 技術選定](docs/discussion/04-tech-selection.md)
+  - [05 開発環境](docs/discussion/05-dev-environment.md)
+  - [06 テスト方法](docs/discussion/06-testing-strategy.md)
+
+## ディレクトリ構成
+
+```
+.
+├── README.md                                   # このファイル
+├── .gitignore
+└── docs/
+    ├── superpowers/specs/
+    │   └── 2026-05-19-vue-biz-app-design-spec.md   # 最終 spec
+    └── discussion/
+        ├── decisions.md                        # 設計判断ログ (DD-001〜DD-049)
+        ├── 01-contract-layer-proposal.md       # 契約レイヤー (Backend ↔ Web ↔ Android)
+        ├── 02-document-set.md                  # 設計書体系
+        ├── 03-implementation-steps.md          # 実装ステップ (9 Phase)
+        ├── 04-tech-selection.md                # 技術選定詳細比較
+        ├── 05-dev-environment.md               # 開発環境 (CI/CD・ブランチ戦略 等)
+        └── 06-testing-strategy.md              # テスト方法 (テストピラミッド)
+```
+
+## 採用された主要技術スタック
+
+| レイヤー   | スタック                                                          |
+| ---------- | ----------------------------------------------------------------- |
+| Web        | Vue 3 + Vuetify 3 + Vite + Pinia + TanStack Query + axios + Zod   |
+| Android    | Vue 3 + Ionic 8 + Capacitor 6+ + Vite + Pinia + TanStack Query    |
+| Backend    | NestJS + Prisma + Zod + @asteasolutions/zod-to-openapi + BullMQ   |
+| 共通       | TypeScript (strict)、orval、MSW、ESLint + Prettier                 |
+| CI/CD      | GitHub Actions（OpenAPI 同期チェックジョブを含む）                |
+| テスト     | Vitest / Jest / Playwright / Maestro / k6 / OWASP ZAP / Snyk      |
+
+## 次のアクション
+
+1. **本リポジトリ内容のユーザレビュー**（現在ここ）
+2. レビュー承認後、実装計画（implementation plan）を作成
+3. 各案件で本スペックを参照し、3 プロジェクト (Backend / Web / Android) を立ち上げ
