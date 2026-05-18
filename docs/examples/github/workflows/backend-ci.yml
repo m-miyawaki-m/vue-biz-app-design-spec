@@ -1,0 +1,113 @@
+# Backend CI (Java + Spring Boot + MyBatis + Gradle Groovy DSL)
+# Status: SKELETON — DD-050 保留中。Spring 詳細 (springdoc-openapi、Flyway、TestContainers 等) 確定後に詰める。
+
+name: Backend CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: write   # GitHub Releases に openapi.yaml をアップロードする
+  pull-requests: write
+
+jobs:
+  static:
+    name: Static checks (compile / checkstyle / spotbugs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v3
+      - run: ./gradlew compileJava
+      # - run: ./gradlew checkstyleMain spotbugsMain    # 採否決定後に有効化
+
+  unit:
+    name: Unit tests (JUnit 5)
+    needs: static
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v3
+      - run: ./gradlew test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: build/reports/tests/test/
+
+  integration:
+    name: Integration tests (TestContainers + PostgreSQL)
+    needs: static
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v3
+      # TestContainers が Docker を必要とする
+      - run: ./gradlew integrationTest
+        # 注: integrationTest タスクは build.gradle で別ソースセット定義済み想定
+
+  openapi-generate:
+    name: OpenAPI generation (springdoc-openapi)
+    needs: static
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v3
+      # TODO (DD-050): springdoc-openapi の OpenAPI YAML 生成タスクを定義
+      # 例:
+      # - run: ./gradlew generateOpenApiDocs
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: openapi-yaml
+      #     path: build/openapi/openapi.yaml
+
+  build:
+    name: Build Docker image (main only)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [unit, integration, openapi-generate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v3
+      - run: ./gradlew bootBuildImage
+      # TODO: GHCR push
+
+  publish-openapi:
+    name: Publish openapi.yaml to GitHub Releases (main only)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v3
+      # TODO (DD-050): build openapi.yaml と tag + Release 化
+      # - run: ./gradlew generateOpenApiDocs
+      # - run: gh release create v${{ github.run_number }} build/openapi/openapi.yaml --notes "Auto release"
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
