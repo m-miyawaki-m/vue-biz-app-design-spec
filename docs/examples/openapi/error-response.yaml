@@ -1,0 +1,159 @@
+# RFC 7807 Problem Details + 業務エラーコード (DD-010) の OpenAPI スキーマ例
+# 案件の openapi.yaml に取り込んで再利用する。
+
+openapi: 3.0.3
+info:
+  title: Error Response Schema Example
+  version: 1.0.0
+  description: |
+    RFC 7807 Problem Details + 業務エラーコード `errorCode: "E-{領域}-{番号}"` の標準スキーマ。
+    全エンドポイントのエラーレスポンスは本スキーマに準拠する。
+
+components:
+  schemas:
+    ProblemDetails:
+      type: object
+      description: RFC 7807 Problem Details + 業務エラーコード
+      required: [type, title, status, errorCode]
+      properties:
+        type:
+          type: string
+          format: uri
+          description: エラー種別を一意に識別する URI
+          example: https://example.com/errors/validation
+        title:
+          type: string
+          description: 人間可読のエラータイトル
+          example: Validation Error
+        status:
+          type: integer
+          format: int32
+          description: HTTP ステータス
+          example: 400
+        detail:
+          type: string
+          description: 具体的なエラー説明
+          example: 顧客コードは必須です
+        instance:
+          type: string
+          description: エラーが発生したリクエストの URI
+          example: /v1/customers
+        errorCode:
+          type: string
+          pattern: '^E-[A-Z0-9]+-\d{3}$'
+          description: 業務エラーコード (E-{領域}-{3 桁番号})
+          example: E-CUSTOMER-001
+        errors:
+          type: array
+          description: フィールド単位のエラー詳細
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field:
+                type: string
+                description: 対象フィールド名
+                example: customerCode
+              message:
+                type: string
+                description: フィールド単位のエラーメッセージ
+                example: 必須項目です
+              code:
+                type: string
+                description: フィールド単位のエラー識別子
+                example: required
+        traceId:
+          type: string
+          description: トレーシング用の ID (ログと突き合わせ可能)
+          example: 0af7651916cd43dd8448eb211c80319c
+
+  responses:
+    BadRequest:
+      description: 400 Bad Request — バリデーションエラー
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            validation:
+              summary: バリデーションエラー
+              value:
+                type: https://example.com/errors/validation
+                title: Validation Error
+                status: 400
+                detail: perPage は 1〜100 の範囲で指定してください
+                instance: /v1/customers?perPage=999
+                errorCode: E-CUSTOMER-001
+                errors:
+                  - field: perPage
+                    message: 1-100 の範囲で指定
+                    code: out_of_range
+
+    Unauthorized:
+      description: 401 Unauthorized — 認証失敗
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            missingToken:
+              summary: トークン未設定
+              value:
+                type: https://example.com/errors/auth/missing-token
+                title: Missing Token
+                status: 401
+                detail: Authorization ヘッダーがありません
+                errorCode: E-AUTH-001
+            expiredToken:
+              summary: トークン期限切れ
+              value:
+                type: https://example.com/errors/auth/expired-token
+                title: Expired Token
+                status: 401
+                detail: アクセストークンの有効期限が切れています
+                errorCode: E-AUTH-002
+
+    Forbidden:
+      description: 403 Forbidden — 権限不足
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            forbidden:
+              value:
+                type: https://example.com/errors/auth/forbidden
+                title: Forbidden
+                status: 403
+                detail: 本機能を実行する権限がありません
+                errorCode: E-AUTH-003
+
+    NotFound:
+      description: 404 Not Found — リソース未発見
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+    Conflict:
+      description: 409 Conflict — リソース競合
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+    InternalServerError:
+      description: 500 Internal Server Error — サーバー内部エラー
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          examples:
+            serverError:
+              value:
+                type: https://example.com/errors/system
+                title: Server Error
+                status: 500
+                detail: サーバー内部でエラーが発生しました
+                errorCode: E-SYS-500
+                traceId: 0af7651916cd43dd8448eb211c80319c

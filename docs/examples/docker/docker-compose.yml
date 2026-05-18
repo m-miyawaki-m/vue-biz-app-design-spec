@@ -1,0 +1,46 @@
+# Backend ローカル開発用 docker-compose
+# PostgreSQL + Redis を起動する。Backend 本体は IDE から起動する想定。
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: appdev-db
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: appdev
+      TZ: Asia/Tokyo
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.docker/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev -d appdev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: appdev-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./.docker/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 結合テスト用の Prism モックサーバー (任意起動)
+  # 起動: docker compose --profile mock up -d
+  prism:
+    profiles: ["mock"]
+    image: stoplight/prism:5
+    container_name: appdev-prism
+    command: mock -h 0.0.0.0 /openapi.yaml
+    ports:
+      - "4010:4010"
+    volumes:
+      - ../openapi/openapi.yaml:/openapi.yaml:ro
