@@ -428,9 +428,84 @@
 
 ---
 
+## DD-041: テスト戦略 — テストピラミッド採用
+
+**決定**: 静的検査 → 単体 → 結合・契約 → E2E → 実機・運用試験 のピラミッド型構造で組み立てる。底辺ほど自動化率高く、上層は人手・実機を含む。
+
+**理由**: テストごとの実行コスト・速度に応じた配分。業務系 CRUD で標準的かつ実証済み。
+
+---
+
+## DD-042: カバレッジ目標
+
+**決定**:
+
+- 静的検査: 100%（CI 必須）
+- 単体テスト (Backend サービス / Web/Android Composables): 80% (statements + branches)
+- 単体テスト (UI コンポーネント): 70%
+- 結合テスト: 全エンドポイントに 1 シナリオ以上
+- E2E: 黄金パス 100%、主要例外シナリオ 80%
+- 性能・セキュリティ: 非機能要件 (S6) 達成
+
+---
+
+## DD-043: 単体テストツール — Backend=Jest、Web/Android=Vitest
+
+**決定**: Backend は Jest (NestJS デフォルト)、Web/Android は Vitest を採用。
+
+**理由**: Vitest は Vite ネイティブ・高速・Jest 互換 API でフロント親和性が高い。Backend は @nestjs/testing との統合が確立。
+
+---
+
+## DD-044: コンポーネントテスト — Vue Test Utils + @testing-library/vue + MSW
+
+**決定**: コンポーネントテストは Vue Test Utils をベースに @testing-library/vue (ユーザー視点クエリ) を併用、API モックは MSW (DD-009)。Android では @ionic/vue-test-utils を追加採用。
+
+---
+
+## DD-045: 契約テスト — OpenAPI schema validation 採用 / Pact 不採用
+
+**決定**: 契約テストは「OpenAPI schema validation」(Backend 側で Zod 検証 + Frontend 側で orval 生成型 + Zod 受信時検証) で行う。Pact (Consumer-Driven Contracts) は不採用。
+
+**理由**: orval + Zod + 自動生成の組み合わせで「コンシューマー側の期待」が型レベルで自動表現されるため、Pact ブローカー運用は重複コスト。
+
+---
+
+## DD-046: E2E テスト — Web=Playwright / Android=Maestro (推奨)
+
+**決定**: Web は Playwright (Chromium/Firefox/WebKit マトリクス)、Android Capacitor 版は Maestro を推奨、複雑な制御が必要な場合のみ Appium。Android PWA build に対しては Playwright を併用。
+
+**理由**: Maestro は YAML 記述・並列実行・エミュレータ自動起動で業務系シナリオ向けに学習コストが低い。
+
+---
+
+## DD-047: 性能テスト — k6 (推奨) + Lighthouse CI
+
+**決定**: Backend API は k6 (推奨) または Artillery、Web 画面は Lighthouse CI を採用。Android は Capacitor 性能計測 + 実機計測。
+
+---
+
+## DD-048: セキュリティテスト — 静的 (SAST/Snyk) + 動的 (OWASP ZAP) + Secret 検出 (gitleaks)
+
+**決定**: SAST は ESLint security plugin + Snyk Code、依存脆弱性は npm audit + Snyk + Dependabot/Renovate、DAST は OWASP ZAP、Secret 検出は gitleaks を採用。Phase 5-6 で集中実施し、PR 時にも軽量チェックを行う。
+
+---
+
+## DD-049: 実機テスト — クラウド実機 (BrowserStack/Sauce Labs) + Firebase Test Lab
+
+**決定**: Android 実機マトリクスはハイエンド最新 / ミドル / 旧 OS 下限を必須カバー。タブレットは案件次第。クラウド実機サービス + Firebase Test Lab で網羅する。
+
+**禁止事項**: 本番データを開発・テスト環境にコピー (PII 漏洩リスク)。
+
+---
+
 ## 未決定論点（次に議論）
 
-- テスト方法（ユニット / 結合 / E2E / モバイル実機 / 性能 / セキュリティ / カバレッジ目標）
+(なし — 全セクション確定)
+
+## 次のアクション
+
+- 最終 spec ドキュメントを `docs/superpowers/specs/2026-05-19-vue-biz-app-design-spec.md` として集約する
 - 実装ステップ（フェーズ定義 / 各フェーズで何を確定させるか）
 - 技術選定の詳細比較（Vuetify3 vs PrimeVue vs Quasar、Ionic vs Capacitor 単体 vs 他）
 - 開発環境（IDE、ローカルセットアップ、Docker、CI/CD）
