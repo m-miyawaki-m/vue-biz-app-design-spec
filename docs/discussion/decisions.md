@@ -550,9 +550,43 @@
 
 上記が決まり次第、影響を受ける DD を再起こし（DD-051 以降として追記）、Backend 関連の discussion ドキュメント（`07-backend-stack.md` 等）と最終 spec を更新する。
 
+## DD-051: 設計書ひな型を追加・拡張（画面一覧・コンポーネントツリー・値のソースマップ）
+
+**決定**: 既存の章立てテンプレ群 (DD-016) に以下を追加・拡張する。
+
+1. **`template-screen-list.md` を新規追加**（W2/A2 画面一覧・画面遷移図、**概要レベル**）
+   - 全画面の ID / 名称 / URL / 種別 / 対象ロール / 関連 UC / 詳細リンク
+   - 通常遷移図・例外遷移図（Mermaid）
+   - ロール × 画面マトリクス
+   - ナビゲーション構造（Web Vuetify / Android Ionic 別）
+   - URL ルーティング規約
+   - モーダル・ダイアログ一覧
+
+2. **`template-screen-design.md` を拡張**（W3/A3 画面設計書、**詳細レベル**）
+   - 新規 Section 5「コンポーネントツリー」追加: Mermaid graph + コンポーネント定義表（Props/Emits/種別/配置）+ Slots 公開構造
+   - Section 7（旧）状態管理を拡張して「Section 8 状態管理 / 値のソースマップ」に改名
+     - 8.1 ソースマップ: 各表示値について「ソース種別 / 具体的なストア・API・ストレージ」を明示
+     - 8.2 ソース種別の凡例: Pinia / TanStack Query / URL / props / local / computed / JWT claim / LocalStorage / Capacitor Preferences / ENV
+     - 8.3 状態遷移図（複雑な画面のみ）
+   - 後続セクションを順次繰り下げ（旧 5〜14 → 新 6〜15）
+
+**理由**:
+
+- DD-016 の 5 ひな型では「概要 vs 詳細」の階層が暗黙だった。`template-screen-list.md` を独立させて Phase 2 早期に書くことを明示
+- 業務系では「この値はどこから来るのか」（Pinia / TanStack Query / JWT 等）の混乱が頻繁。値のソースマップ強制化で実装着手前に整理可能
+- Vue/Ionic 特有のコンポーネント親子構造は Mermaid で 1 画面 1 図化することでレビュー・引継ぎが容易になる
+
+**代替案（不採用）**:
+
+- `template-component-design.md` を W5/A6 専用に新規分離: 必要性はあるが優先度低。`template-internal-design.md` で代用可能なため将来検討に回す（Backend と Frontend を併存させる方が共通章立てが活きる）
+- 状態管理を独立した `template-state-management.md` に分離: 画面ごとの参照頻度が高い「値のソースマップ」は画面設計書内にある方が動線が良い
+
+---
+
 ## 次のアクション
 
 - Backend 詳細 DD（OpenAPI 生成方針、MyBatis 規約、Spring Security 設定、Spring Batch、Flyway、JUnit/TestContainers、CI/CD Gradle 化）を別セッションで議論・確定する
+- 必要なら W5/A6 専用 `template-component-design.md` を将来追加検討
 - 実装ステップ（フェーズ定義 / 各フェーズで何を確定させるか）
 - 技術選定の詳細比較（Vuetify3 vs PrimeVue vs Quasar、Ionic vs Capacitor 単体 vs 他）
 - 開発環境（IDE、ローカルセットアップ、Docker、CI/CD）

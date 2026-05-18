@@ -22,7 +22,7 @@ Vue 系フロントエンド（Vuetify 3 / Vue + Ionic + Capacitor）で、Web �
 ## 主要ドキュメント
 
 - **[最終 spec](docs/superpowers/specs/2026-05-19-vue-biz-app-design-spec.md)** — まず読むべき統合ドキュメント
-- [設計判断ログ (decisions.md)](docs/discussion/decisions.md) — 全 DD-001〜DD-050 の理由と代替案
+- [設計判断ログ (decisions.md)](docs/discussion/decisions.md) — 全 DD-001〜DD-051 の理由と代替案
 - 各セクション詳細:
   - [01 契約レイヤー](docs/discussion/01-contract-layer-proposal.md)
   - [02 設計書体系](docs/discussion/02-document-set.md)
@@ -31,7 +31,7 @@ Vue 系フロントエンド（Vuetify 3 / Vue + Ionic + Capacitor）で、Web �
   - [05 開発環境](docs/discussion/05-dev-environment.md)
   - [06 テスト方法](docs/discussion/06-testing-strategy.md)
 - 再利用アーティファクト:
-  - [docs/templates/](docs/templates/) — 設計書ひな型 5 種 (要件 / 画面 / 内部設計 / テスト仕様 / API 内部処理)
+  - [docs/templates/](docs/templates/) — 設計書ひな型 6 種 (画面一覧 / 要件 / 画面設計 / 内部設計 / テスト仕様 / API 内部処理)
   - [docs/examples/](docs/examples/) — PR テンプレ / Issue テンプレ / 3 CI ワークフロー / tsconfig / eslint / vscode / docker / env / openapi
   - [docs/checklists/](docs/checklists/) — フェーズゲート / PR レビュー / API 変更 / リリース / オンボーディング
 

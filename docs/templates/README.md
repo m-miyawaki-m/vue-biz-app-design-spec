@@ -4,13 +4,21 @@
 
 ## ひな型一覧
 
-| ファイル                          | 想定使用箇所                        | 関連 DD                |
-| --------------------------------- | ----------------------------------- | ---------------------- |
-| `template-requirements.md`        | S1 / B1 / W1 / A1 の機能要件定義書 | DD-014, DD-015         |
-| `template-screen-design.md`       | W3 / A3 の画面設計書                | DD-014                 |
-| `template-internal-design.md`     | B3 / W5 / A6 の内部設計書           | DD-014                 |
-| `template-test-spec.md`           | B8 / W7 / A8 のテスト仕様書         | DD-014, DD-041, DD-042 |
-| `template-api-internal.md`        | B5 API 内部処理設計書                | DD-014, DD-010         |
+| ファイル                          | 想定使用箇所                                  | 関連 DD                        |
+| --------------------------------- | --------------------------------------------- | ------------------------------ |
+| `template-screen-list.md`         | W2 / A2 の画面一覧・画面遷移図（概要レベル）   | DD-014, DD-051                 |
+| `template-requirements.md`        | S1 / B1 / W1 / A1 の機能要件定義書             | DD-014, DD-015                 |
+| `template-screen-design.md`       | W3 / A3 の画面設計書（詳細レベル）             | DD-014, DD-051                 |
+| `template-internal-design.md`     | B3 / W5 / A6 の内部設計書                      | DD-014                         |
+| `template-test-spec.md`           | B8 / W7 / A8 のテスト仕様書                    | DD-014, DD-041, DD-042         |
+| `template-api-internal.md`        | B5 API 内部処理設計書                          | DD-014, DD-010                 |
+
+## 概要 / 詳細の階層
+
+- **概要レベル**: `template-screen-list.md`（全画面の一覧と遷移、ロール × 画面マトリクス、ナビ構造）
+- **詳細レベル**: `template-screen-design.md`（個別画面のコンポーネントツリー、項目定義、値のソースマップ、状態遷移）
+
+Phase 2 (基本設計) の早期に概要レベルを完成させ、その後 Phase 2 後半〜Phase 3 で詳細レベルを画面ごとに展開する。
 
 ## 使い方
 

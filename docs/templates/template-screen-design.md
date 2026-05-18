@@ -2,16 +2,17 @@
 
 > ひな型: vue-biz-app-design-spec/docs/templates/template-screen-design.md
 > Web (Vuetify3) / Android (Ionic) のいずれにも適用可。コンポーネント割当の章で Vuetify / Ionic を選択する。
+> 概要レベル（全画面一覧・遷移図）は別途 template-screen-list.md (W2/A2) で管理。
 
 ## 0. 文書情報
 
-| 項目         | 内容                            |
-| ------------ | ------------------------------- |
-| 文書 ID       | SD-[YYYY-NNN]                  |
-| バージョン    | 0.1.0                           |
-| 作成日        | YYYY-MM-DD                      |
-| 作成者        | [氏名]                          |
-| 対象プラットフォーム | Web / Android                   |
+| 項目                  | 内容              |
+| --------------------- | ----------------- |
+| 文書 ID                | SD-[YYYY-NNN]    |
+| バージョン             | 0.1.0             |
+| 作成日                 | YYYY-MM-DD        |
+| 作成者                 | [氏名]            |
+| 対象プラットフォーム    | Web / Android     |
 
 ### 更新履歴
 
@@ -86,7 +87,60 @@ graph TB
 
 ---
 
-## 5. 項目定義
+## 5. コンポーネントツリー
+
+画面を構成する Vue / Ionic コンポーネントの親子関係。
+
+```mermaid
+graph TB
+  PAGE["CustomerListPage (ページ)"]
+  APP_BAR["AppBar (グローバル)"]
+  SEARCH["CustomerSearchForm (検索フォーム)"]
+  S_CODE["TextInput - 顧客コード"]
+  S_NAME["TextInput - 顧客名"]
+  S_STATUS["StatusSelect"]
+  S_BTN["v-btn - 検索"]
+  TABLE["CustomerTable"]
+  PAGER["v-pagination"]
+  FAB["CreateFab"]
+
+  PAGE --> APP_BAR
+  PAGE --> SEARCH
+  SEARCH --> S_CODE
+  SEARCH --> S_NAME
+  SEARCH --> S_STATUS
+  SEARCH --> S_BTN
+  PAGE --> TABLE
+  PAGE --> PAGER
+  PAGE --> FAB
+```
+
+### 5.1 コンポーネント定義表
+
+| コンポーネント        | 種別           | 提供元              | 主な Props                                        | 主な Emits                       | 配置                              |
+| --------------------- | -------------- | ------------------- | ------------------------------------------------- | -------------------------------- | --------------------------------- |
+| CustomerListPage      | ページ          | 案件内              | -（router.params から取得）                       | -                                | `src/views/customer/CustomerListPage.vue` |
+| AppBar                | 共通レイアウト   | 案件内 (shared)     | `userName: string`, `role: Role`                  | `logout`                         | `src/layouts/AppBar.vue`          |
+| CustomerSearchForm    | 部分            | 案件内              | `modelValue: SearchCriteria`                       | `update:modelValue`, `submit`     | `src/components/customer/CustomerSearchForm.vue` |
+| TextInput             | 原子部品 (wrap) | 案件内 (shared)     | `modelValue`, `label`, `rules?`, `error?`         | `update:modelValue`              | `src/components/atoms/TextInput.vue` |
+| StatusSelect          | 原子部品         | 案件内              | `modelValue`, `options: StatusOption[]`           | `update:modelValue`              | `src/components/customer/StatusSelect.vue` |
+| CustomerTable         | 部分            | 案件内              | `items: Customer[]`, `loading: boolean`, `sortBy?` | `rowClick (id)`, `sort (column)`  | `src/components/customer/CustomerTable.vue` |
+| v-pagination          | 原子部品 (lib)  | Vuetify             | `modelValue`, `length`, `totalVisible`            | `update:modelValue`              | -                                 |
+| CreateFab             | 共通             | 案件内 (shared)     | `disabled?: boolean`                              | `click`                          | `src/components/shared/CreateFab.vue` |
+
+### 5.2 Slots / 公開構造（複雑な場合のみ）
+
+```typescript
+// CustomerTable.vue のスロット定義例
+defineSlots<{
+  'item.status': (props: { item: Customer }) => any;  // 状態列のカスタム描画
+  'no-data': () => any;                                // データなし時のカスタム表示
+}>();
+```
+
+---
+
+## 6. 項目定義
 
 | 項目 ID  | 名称       | 種別         | 型・桁         | 必須 | 初期値 | バリデーション                                       | コンポーネント        | 備考             |
 | -------- | ---------- | ------------ | -------------- | ---- | ------ | ---------------------------------------------------- | --------------------- | ---------------- |
@@ -96,7 +150,7 @@ graph TB
 | F-004    | 検索ボタン | アクション   | -              | -    | -      | -                                                    | v-btn                 | F-005 を実行     |
 | F-005    | 検索結果   | テーブル     | 顧客情報の配列 | -    | -      | -                                                    | v-data-table-server   | サーバーサイドページング |
 
-### 5.1 テーブル列定義（F-005）
+### 6.1 テーブル列定義（F-005）
 
 | 列 ID    | 列名       | 型       | ソート | フィルタ | アクション   |
 | -------- | ---------- | -------- | ------ | -------- | ------------ |
@@ -107,7 +161,7 @@ graph TB
 
 ---
 
-## 6. アクション一覧
+## 7. アクション一覧
 
 | アクション ID | トリガー               | 処理                                         | 呼び出し API             |
 | ------------- | ---------------------- | -------------------------------------------- | ------------------------ |
@@ -118,28 +172,67 @@ graph TB
 
 ---
 
-## 7. 状態管理
+## 8. 状態管理 / 値のソースマップ
 
-| 状態 ID    | 名称              | 種別               | 管理場所            |
-| ---------- | ----------------- | ------------------ | ------------------- |
-| ST-001     | 検索条件          | フォーム下書き     | Pinia               |
-| ST-002     | 検索結果一覧      | サーバーキャッシュ | TanStack Query      |
-| ST-003     | ローディング状態   | サーバー状態        | TanStack Query (isFetching) |
-| ST-004     | エラー状態         | サーバー状態        | TanStack Query (error)      |
+### 8.1 ソースマップ（各表示値の出どころ）
+
+画面に表示・参照される全ての値について、ソース種別と具体的な取得経路を明示する。
+
+| 値 / 表示項目             | 表示位置          | ソース種別                  | 具体的なストア / API / ストレージ              | 備考                                      |
+| ------------------------- | ----------------- | --------------------------- | ---------------------------------------------- | ----------------------------------------- |
+| ユーザー名                | AppBar 右上       | Pinia                       | `useAuthStore().user.name`                     | JWT デコードから初期化                     |
+| ロール                    | (条件分岐用)       | Pinia                       | `useAuthStore().user.role`                     | JWT claim                                 |
+| 検索条件 (code/name/status) | 検索フォーム      | Pinia (フォーム下書き)      | `useCustomerSearchStore().criteria`            | URL クエリと双方向同期                     |
+| 検索結果一覧              | テーブル          | TanStack Query              | `useCustomersQuery(criteria)` → GET /v1/customers | キャッシュキー: `['customers', criteria]`  |
+| ローディング状態          | テーブル / FAB    | TanStack Query              | `useCustomersQuery().isFetching`               | -                                         |
+| エラー状態                | スナックバー       | TanStack Query              | `useCustomersQuery().error`                    | RFC 7807 を Snackbar 用にマップ            |
+| ページ番号                | ページネーション   | URL クエリ                  | `route.query.page` ↔ Pinia 経由                | F5 で復元可能                             |
+| 選択中ソート              | テーブル列見出し  | URL クエリ                  | `route.query.sortBy`                            | F5 で復元可能                             |
+| FAB の活性/非活性        | FAB              | computed                    | `useAuthStore().hasRole('ROLE-002')`            | 権限により非表示                          |
+| 状態バッジの色           | テーブル C-003 列  | computed                    | `(status) => statusColorMap[status]`            | コード値マップ参照                         |
+
+### 8.2 ソース種別の凡例
+
+| 種別                    | 用途                                              | 例                                       |
+| ----------------------- | ------------------------------------------------- | ---------------------------------------- |
+| Pinia                   | UI 状態・認証情報・フォーム下書き                  | `useAuthStore`, `useFormDraftStore`      |
+| TanStack Query           | サーバー由来データ（キャッシュ・再取得・楽観更新） | `useCustomersQuery`                      |
+| URL クエリ / params      | URL 復元可能な状態（ページング・検索条件）         | `route.query.page`, `route.params.id`    |
+| props                   | 親コンポーネントから渡される                       | `defineProps<{ items: Customer[] }>()`   |
+| local ref / reactive     | コンポーネント内部の一時状態                       | `const isOpen = ref(false)`              |
+| computed                | 他の値からの派生                                  | `const canEdit = computed(() => ...)`    |
+| JWT claim               | ユーザー情報・権限（authStore 経由で参照）         | `useAuthStore().user.role`               |
+| LocalStorage            | 永続化したいユーザー設定（テーマ等）               | `useLocalStorage('theme', 'light')`      |
+| Capacitor Preferences    | Android 永続化 (Secure Storage 経由)              | `await Preferences.get({ key: ... })`     |
+| ENV (Vite)              | ビルド時定数 (`VITE_*`)                            | `import.meta.env.VITE_API_BASE_URL`      |
+
+### 8.3 状態遷移図（複雑な画面のみ）
+
+```mermaid
+stateDiagram-v2
+  [*] --> Idle
+  Idle --> Searching: 検索ボタン
+  Searching --> Loaded: API 成功
+  Searching --> Error: API 失敗
+  Loaded --> Searching: 再検索 / ページ変更 / ソート変更
+  Error --> Searching: リトライ
+  Loaded --> [*]: 画面離脱
+```
 
 ---
 
-## 8. API 連携
+## 9. API 連携
 
 | API ID         | エンドポイント            | 用途                  | 関連画面項目  |
 | -------------- | ------------------------- | --------------------- | ------------- |
 | API-CUST-001   | GET /v1/customers          | 一覧取得・検索        | F-005         |
 
 API スキーマ詳細は **S3 API 仕様書** を参照。
+内部処理詳細は **B5 API 内部処理設計書** (`template-api-internal.md`) を参照。
 
 ---
 
-## 9. エラー処理
+## 10. エラー処理
 
 | エラー種別     | 画面表示                                                | 関連エラーコード      |
 | -------------- | ------------------------------------------------------- | --------------------- |
@@ -152,7 +245,7 @@ API スキーマ詳細は **S3 API 仕様書** を参照。
 
 ---
 
-## 10. アクセシビリティ・キーボード操作
+## 11. アクセシビリティ・キーボード操作
 
 | 操作                   | キー                       |
 | ---------------------- | -------------------------- |
@@ -168,7 +261,7 @@ ARIA 属性:
 
 ---
 
-## 11. レスポンシブ対応 (Web のみ)
+## 12. レスポンシブ対応 (Web のみ)
 
 | 画面幅                    | レイアウト変化                                |
 | ------------------------- | --------------------------------------------- |
@@ -178,7 +271,7 @@ ARIA 属性:
 
 ---
 
-## 12. Android 固有 (該当時)
+## 13. Android 固有 (該当時)
 
 | 項目                   | 内容                                              |
 | ---------------------- | ------------------------------------------------- |
@@ -189,16 +282,16 @@ ARIA 属性:
 
 ---
 
-## 13. 補足事項
+## 14. 補足事項
 
 - [補足や検討中の事項を残す]
 
 ---
 
-## 14. 関連ドキュメント
+## 15. 関連ドキュメント
 
-- W2 画面一覧・画面遷移図
-- W4 状態管理設計書
-- W5 コンポーネント設計書
+- W2 / A2 画面一覧・画面遷移図 (template-screen-list.md)
+- W4 状態管理・データフロー設計書
+- W5 / A6 コンポーネント設計書 (template-internal-design.md)
 - S3 API 仕様書
 - S5 業務エラーコード一覧

@@ -179,17 +179,18 @@ S2 データ辞書, S4 認証仕様, S5 エラーコード ←── 全 B/W/A �
 S6 非機能要件 ←── B3/B4/B6/B7 で具体化、W/A はクライアント影響範囲のみ参照
 ```
 
-### 3.3 章立てテンプレート (DD-016)
+### 3.3 章立てテンプレート (DD-016, DD-051)
 
 `docs/templates/` 配下に統一ひな型を整備:
 
+- `template-screen-list.md` — 画面一覧・画面遷移図（**概要レベル** W2/A2、DD-051）
 - `template-requirements.md` — 要件定義書
-- `template-screen-design.md` — 画面設計書
+- `template-screen-design.md` — 画面設計書（**詳細レベル**、コンポーネントツリー + 値のソースマップ含む、DD-051）
 - `template-internal-design.md` — 内部設計書
 - `template-test-spec.md` — テスト仕様書
 - `template-api-internal.md` — API 内部処理設計書
 
-Approach C の独立性を保ちつつ「目次は揃える」ことで、レビューと再利用性を向上させる。
+Approach C の独立性を保ちつつ「目次は揃える」ことで、レビューと再利用性を向上させる。**概要レベル（screen-list）と詳細レベル（screen-design）の階層**で、Phase 2 早期 → Phase 2 後半〜Phase 3 の流れに沿った執筆順を設計に組み込んでいる。
 
 ---
 
@@ -533,6 +534,8 @@ push to main の主要ジョブ:
 | DD-047 | 性能テスト — k6 + Lighthouse CI                                |
 | DD-048 | セキュリティテスト — SAST + DAST + gitleaks                   |
 | DD-049 | 実機テスト — クラウド実機 + Firebase Test Lab                  |
+| DD-050 | Backend スタックを Java + Spring に変更（前提変更）           |
+| DD-051 | 設計書ひな型を追加・拡張（画面一覧・コンポーネントツリー・値のソースマップ） |
 
 各 DD の詳細（理由・代替案不採用理由）: `docs/discussion/decisions.md` 参照。
 
@@ -549,7 +552,7 @@ push to main の主要ジョブ:
 | `docs/discussion/04-tech-selection.md`                          | 技術選定詳細比較                       |
 | `docs/discussion/05-dev-environment.md`                         | 開発環境                              |
 | `docs/discussion/06-testing-strategy.md`                        | テスト方法                            |
-| `docs/templates/*.md`                                           | 設計書ひな型 (S/B/W/A 共通枠 5 種)     |
+| `docs/templates/*.md`                                           | 設計書ひな型 6 種（概要/詳細階層あり、DD-051）|
 | `docs/examples/`                                                | 設定・CI・契約の具体例コピー元         |
 | `docs/checklists/*.md`                                          | フェーズゲート / PR / API 変更 / リリース / オンボーディング |
 
